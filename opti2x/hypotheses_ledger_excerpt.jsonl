@@ -1,0 +1,4 @@
+{"id": "H-L1-1", "status": "ACCEPT", "median_s": 2.1, "speedup_vs_formal": 1.91, "oracle": true, "nlwp": 1, "note": "LLT per tau; alone <2x wall", "timestamp_pt": "2026-09-29T16:48:21-0700", "claim": "F-L1-QT"}
+{"id": "H-L1-2", "status": "ACCEPT_MARGINAL", "median_s": 3.755, "speedup_vs_formal": 1.07, "oracle": true, "nlwp": 1, "note": "rankUpdate Gram", "timestamp_pt": "2026-09-29T16:48:21-0700", "claim": "F-L1-QT"}
+{"id": "H-L1-3", "status": "REJECT", "median_s": 3.915, "speedup_vs_formal": 1.03, "oracle": true, "nlwp": 1, "note": "noalias GEMV no win", "timestamp_pt": "2026-09-29T16:48:21-0700", "claim": "F-L1-QT"}
+{"id": "stack_HL11_HL12", "status": "ACCEPT_QUALIFIED", "median_s": 1.735, "speedup_vs_formal": 2.288, "lower_95": 2.271, "oracle": true, "nlwp": 1, "note": "N=30 paired cert", "timestamp_pt": "2026-09-29T16:48:21-0700", "claim": "F-L1-QT"}

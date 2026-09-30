@@ -1,0 +1,20 @@
+# Compiled outputs
+regenie
+regenie.l1qt
+regenie.s2qt
+regenie.h1
+*.o
+*.a
+*.so
+*.d
+
+# Build and scratch directories
+build/
+workspace/
+.claude/
+
+# Local profiling and test outputs
+*.prof
+*.gcda
+*.gcno
+perf.data*

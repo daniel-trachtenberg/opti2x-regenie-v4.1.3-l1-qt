@@ -1,0 +1,48 @@
+diff --git a/src/Step1_Models.cpp b/src/Step1_Models.cpp
+index d70ea35..92807aa 100644
+--- a/src/Step1_Models.cpp
++++ b/src/Step1_Models.cpp
+@@ -809,7 +809,11 @@ void ridge_level_1(struct in_files* files, struct param* params, struct phenodt*
+       XtX_sum.setZero(bs_l1, bs_l1);
+       XtY_sum.setZero(bs_l1, 1);
+       for( int i = 0; i < params->cv_folds; ++i ) {
+-        l1->X_folds[i] = l1->test_mat[ph_eff][i].transpose() * l1->test_mat[ph_eff][i];
++        // OPTI2X H-L1-2: selfadjoint rankUpdate for fold Gram WᵀW
++        const int p = l1->test_mat[ph_eff][i].cols();
++        l1->X_folds[i].setZero(p, p);
++        l1->X_folds[i].selfadjointView<Lower>().rankUpdate(l1->test_mat[ph_eff][i].transpose());
++        l1->X_folds[i].triangularView<Upper>() = l1->X_folds[i].transpose();
+         l1->XtY[i]     = l1->test_mat[ph_eff][i].transpose() * l1->test_pheno[ph][i];
+         XtX_sum += l1->X_folds[i];
+         XtY_sum += l1->XtY[i];
+@@ -829,14 +833,13 @@ void ridge_level_1(struct in_files* files, struct param* params, struct phenodt*
+       }
+ 
+       if(use_simple_ridge){
+-        SelfAdjointEigenSolver<MatrixXd> eigX1(X1);
+-        vmat = eigX1.eigenvectors();
+-        dvec = eigX1.eigenvalues();
+-        VtX2 = vmat.transpose() * X2;
+-      // compute solutions for all ridge parameters at once
+-        dl_inv = ( dvec.rowwise().replicate(params->n_ridge_l1) + l1->ridge_param_mult.matrix() * params->tau[ph].matrix().transpose() ).array().inverse().matrix();
+-        dl_inv.array().colwise() *= VtX2.array();
+-        beta_l1 = vmat * dl_inv;
++        // OPTI2X H-L1-1: LLT per τ of (X1 + τ I)
++        beta_l1.resize(bs_l1, params->n_ridge_l1);
++        for(int j = 0; j < params->n_ridge_l1; ++j) {
++          X1.diagonal().array() += params->tau[ph](j);
++          beta_l1.col(j) = X1.llt().solve(X2);
++          X1.diagonal().array() -= params->tau[ph](j);
++        }
+       } else { // need to compute seperately for each parameter
+         beta_l1.resize(bs_l1, params->n_ridge_l1);
+         for(int j = 0; j < params->n_ridge_l1; ++j) {
+@@ -848,7 +851,7 @@ void ridge_level_1(struct in_files* files, struct param* params, struct phenodt*
+       }
+       if(!params->within_sample_l0) l1->beta_hat_level_1[ph][i] = beta_l1;
+       // p1 is Nfold x nridge_l1 matrix
+-      p1 = l1->test_mat[ph_eff][i] * beta_l1;
++      p1.noalias() = l1->test_mat[ph_eff][i] * beta_l1;
+       l1->cumsum_values[0].row(ph) += p1.colwise().sum();
+       l1->cumsum_values[1].row(ph).array() += l1->test_pheno[ph][i].array().sum();
+       l1->cumsum_values[2].row(ph) += p1.array().square().matrix().colwise().sum();
